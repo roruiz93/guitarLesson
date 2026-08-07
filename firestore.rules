@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() { return request.auth != null; }
+    function isOwner(userId) { return request.auth.uid == userId; }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'creadoEn']);
+      match /exercises/{exerciseId} { allow read, write: if isAuthenticated() && isOwner(userId); }
+      match /badges/{badgeId} { allow read: if isAuthenticated() && isOwner(userId); allow write: if false; }
+      match /progress/{lessonId} { allow read, write: if isAuthenticated() && isOwner(userId); }
+    }
+    match /leaderboard/{periodo} { allow read: if isAuthenticated(); allow write: if false; }
+    match /lessons/{nivel}/{lessonId} { allow read: if isAuthenticated(); allow write: if false; }
+  }
+}
