@@ -1,0 +1,80 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Funciones auxiliares ──────────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isValidEmail() {
+      return request.auth.token.email_verified == true;
+    }
+
+    // ── Usuarios ──────────────────────────────────────────────────────────────
+
+    match /users/{userId} {
+      // Leer: solo el propio usuario
+      allow read: if isAuthenticated() && isOwner(userId);
+
+      // Crear: al registrarse (solo los campos permitidos)
+      allow create: if isAuthenticated()
+        && isOwner(userId)
+        && request.resource.data.keys().hasAll(['email', 'plan', 'xp', 'streak', 'createdAt'])
+        && request.resource.data.plan == 'free'
+        && request.resource.data.xp == 0;
+
+      // Actualizar: solo campos no críticos (no plan, no xp — esos solo via Cloud Functions)
+      allow update: if isAuthenticated()
+        && isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['plan']);
+    }
+
+    // ── Leaderboard ───────────────────────────────────────────────────────────
+
+    match /leaderboard/{userId} {
+      // Cualquier autenticado puede leer el leaderboard
+      allow read: if isAuthenticated();
+
+      // Solo el propio usuario puede escribir (solo via Cloud Functions en producción)
+      allow write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // ── Caché de suscripciones ────────────────────────────────────────────────
+
+    match /subscriptionCache/{userId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      // Solo Cloud Functions pueden escribir
+      allow write: if false;
+    }
+
+    // ── Caché de leaderboard ─────────────────────────────────────────────────
+
+    match /leaderboardCache/{period} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // ── Historial de ejercicios ───────────────────────────────────────────────
+
+    match /exerciseHistory/{docId} {
+      // Puede leer solo sus propios registros (filtrando por userId en la query)
+      allow read: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+
+      // Solo Cloud Functions escriben
+      allow write: if false;
+    }
+
+    // ── Regla de seguridad por defecto: denegar todo lo demás ─────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
