@@ -11,6 +11,8 @@ import { AuthUI } from './ui/auth.js';
 import { NavUI } from './ui/nav.js';
 import { PlansUI } from './ui/plans.js';
 import { LessonsBrowserUI } from './ui/lessons-browser.js';
+import { LegalUI } from './ui/legal.js';
+import { FooterUI } from './ui/footer.js';
 import { LessonEngine } from './services/lesson-engine.js';
 import { Router } from './router.js';
 import { LESSONS } from './data/lessons.js';
@@ -34,13 +36,15 @@ const lessonsBrowserUI = new LessonsBrowserUI(lessonEngine, subscription, auth);
 
 const router = new Router();
 const navUI = new NavUI(router, auth);
+const legalUI = new LegalUI();
+const footerUI = new FooterUI();
 
 // ── Guardia de autenticación ──────────────────────────────────────────────────
 // Principiante es libre — solo pide cuenta para intermedio/avanzado
 
 router.addGuard((path, params) => {
   // Rutas siempre públicas
-  const alwaysPublic = ['/login', '/plans', '/terms', '/privacy', '/tuner', '/'];
+  const alwaysPublic = ['/login', '/plans', '/terms', '/privacy', '/cookies', '/tuner', '/'];
   if (alwaysPublic.some((p) => path === p || path.startsWith(p + '/'))) return true;
 
   // Lecciones principiante: libre sin cuenta
@@ -110,7 +114,7 @@ router
     const access = await lessonEngine.canAccessLesson(lessonId, status, auth.getCurrentUser()?.uid);
 
     if (!access.canAccess) {
-      showBlockedLesson(access.reason);
+      showBlockedLesson(access);
       return;
     }
 
@@ -189,6 +193,21 @@ router
     plansUI.render();
   })
 
+  .on('/terms', () => {
+    navUI.update();
+    legalUI.render('terms');
+  })
+
+  .on('/privacy', () => {
+    navUI.update();
+    legalUI.render('privacy');
+  })
+
+  .on('/cookies', () => {
+    navUI.update();
+    legalUI.render('cookies');
+  })
+
   .notFound(({ path }) => {
     const main = document.getElementById('main-content');
     if (main) {
@@ -256,6 +275,7 @@ function initApp() {
 
   document.getElementById('loading')?.remove();
   navUI.mount();
+  footerUI.mount();
   router.start();
 }
 
@@ -334,14 +354,14 @@ async function checkBadges(userId) {
   }
 }
 
-function showBlockedLesson(reason) {
+function showBlockedLesson({ reason, comingSoon }) {
   const main = document.getElementById('main-content');
   main.innerHTML = `
     <div class="blocked-lesson">
       <div class="blocked-icon">🔒</div>
-      <h2>Lección bloqueada</h2>
-      <p>${reason}</p>
-      <a class="btn-primary" href="#/plans">Ver planes</a>
+      <h2>${comingSoon ? 'Próximamente' : 'Lección bloqueada'}</h2>
+      <p>${comingSoon ? 'Este nivel todavía no está disponible. ¡Muy pronto!' : reason}</p>
+      ${comingSoon ? '' : '<a class="btn-primary" href="#/plans">Ver planes</a>'}
       <a class="btn-secondary" href="#/lessons">Volver a lecciones</a>
     </div>
   `;

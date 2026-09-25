@@ -1,3 +1,6 @@
+import { LEGAL } from '../config/legal.js';
+import { FREE_ONLY } from '../config/features.js';
+
 /** UI de autenticación: login, registro y recuperación de contraseña */
 export class AuthUI {
   constructor(authModule) {
@@ -64,15 +67,24 @@ export class AuthUI {
               <label for="reg-password2">Confirmar contraseña</label>
               <input type="password" id="reg-password2" placeholder="Repite la contraseña" required />
             </div>
+            <label class="auth-consent">
+              <input type="checkbox" id="reg-consent" required />
+              <span>
+                Leí y acepto los <a href="#/terms" target="_blank">Términos y condiciones</a> y la
+                <a href="#/privacy" target="_blank">Política de privacidad</a>, incluida la transferencia
+                internacional de mis datos a los servidores de Google Firebase.
+              </span>
+            </label>
+            <label class="auth-consent">
+              <input type="checkbox" id="reg-age" required />
+              <span>
+                Tengo ${LEGAL.minAge} años o más y, si soy menor de 18, cuento con la autorización de mi padre, madre o tutor.
+              </span>
+            </label>
             <div id="register-error" class="auth-error hidden"></div>
             <button type="submit" class="btn-primary btn-full" id="register-submit">
               Crear cuenta gratis
             </button>
-            <p class="auth-terms">
-              Al registrarte aceptas nuestros
-              <a href="#/terms">Términos de uso</a> y
-              <a href="#/privacy">Política de privacidad</a>.
-            </p>
           </form>
 
           <!-- Form forgot password -->
@@ -104,9 +116,10 @@ export class AuthUI {
   }
 
   _planCard(id, name, price, features, selected) {
+    const comingSoon = FREE_ONLY && id !== 'free';
     return `
-      <div class="plan-card ${selected ? 'selected' : ''}" data-plan="${id}">
-        <div class="plan-name">${name}</div>
+      <div class="plan-card ${selected ? 'selected' : ''} ${comingSoon ? 'plan-coming-soon' : ''}" data-plan="${id}">
+        <div class="plan-name">${name}${comingSoon ? ' <span class="coming-soon-tag">🔒 Próximamente</span>' : ''}</div>
         <div class="plan-price">${price}</div>
         <ul class="plan-features">
           ${features.map(f => `<li>✓ ${f}</li>`).join('')}
@@ -158,7 +171,7 @@ export class AuthUI {
     });
 
     // Plan cards
-    document.querySelectorAll('.plan-card').forEach((card) => {
+    document.querySelectorAll('.plan-card:not(.plan-coming-soon)').forEach((card) => {
       card.addEventListener('click', () => {
         document.querySelectorAll('.plan-card').forEach((c) => c.classList.remove('selected'));
         card.classList.add('selected');
@@ -196,6 +209,9 @@ export class AuthUI {
     if (password !== password2) {
       return this._showError(errEl, 'Las contraseñas no coinciden');
     }
+    if (!document.getElementById('reg-consent').checked || !document.getElementById('reg-age').checked) {
+      return this._showError(errEl, 'Tenés que aceptar los términos y confirmar tu edad para continuar');
+    }
 
     this._setLoading(btn, true);
     errEl.classList.add('hidden');
@@ -203,10 +219,17 @@ export class AuthUI {
     try {
       const user = await this._auth.signUp(email, password);
 
-      // Guardar displayName en Firestore
       const { doc, updateDoc } = await import('firebase/firestore');
       const { db } = await import('../services/firebase.js');
-      await updateDoc(doc(db, 'users', user.uid), { displayName: name });
+      // Guardar displayName y constancia de aceptación de términos/privacidad
+      await updateDoc(doc(db, 'users', user.uid), {
+        displayName: name,
+        consent: {
+          termsVersion: LEGAL.version,
+          acceptedAt: new Date().toISOString(),
+          ageConfirmed: true,
+        },
+      });
 
       onSuccess?.();
     } catch (err) {

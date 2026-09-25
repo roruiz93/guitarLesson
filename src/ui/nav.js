@@ -1,3 +1,5 @@
+import { FREE_ONLY } from '../config/features.js';
+
 /** Navbar persistente con estado de auth y plan */
 export class NavUI {
   constructor(router, authModule) {
@@ -62,6 +64,7 @@ export class NavUI {
   }
 
   _planLabel(plan) {
+    if (FREE_ONLY && plan === 'free') return '🎸 Plan Gratis';
     const labels = { free: '⬆ Mejorar plan', lite: '🎵 LITE', pro: '⭐ PRO', maestro: '👑 MAESTRO' };
     return labels[plan] || '⬆ Plan';
   }

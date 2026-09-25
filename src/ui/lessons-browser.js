@@ -1,4 +1,5 @@
 import { LESSONS, LESSON_IDS } from '../data/lessons.js';
+import { isNivelComingSoon } from '../config/features.js';
 
 const NIVEL_CONFIG = {
   principiante: { label: 'Principiante', icon: '🌱', color: '#22c55e', plan: 'free' },
@@ -43,12 +44,16 @@ export class LessonsBrowserUI {
               data-nivel="${key}"
               style="${key === nivelActual ? `border-bottom-color:${cfg.color}` : ''}">
               ${cfg.icon} ${cfg.label}
-              ${key !== 'principiante' && !isAuth ? '🔒' : ''}
+              ${isNivelComingSoon(key)
+                ? '<span class="coming-soon-tag">🔒 Próximamente</span>'
+                : key !== 'principiante' && !isAuth ? '🔒' : ''}
             </button>
           `).join('')}
         </div>
 
-        ${nivelActual !== 'principiante' && !isAuth
+        ${isNivelComingSoon(nivelActual)
+          ? this._renderComingSoon(nivelActual)
+          : nivelActual !== 'principiante' && !isAuth
           ? this._renderAuthWall(nivelActual)
           : `<div class="subniveles-grid">
               ${SUBNIVEL_NOMBRES[nivelActual].map((nombre, i) => {
@@ -89,6 +94,24 @@ export class LessonsBrowserUI {
     });
   }
 
+  _renderComingSoon(nivel) {
+    const cfg = NIVEL_CONFIG[nivel];
+    return `
+      <div class="auth-wall coming-soon">
+        <div class="auth-wall-icon">🔒</div>
+        <h3>${cfg.icon} Nivel ${cfg.label}</h3>
+        <span class="coming-soon-tag">Próximamente</span>
+        <p>Estamos preparando este nivel. Mientras tanto, completá el nivel Principiante — es 100% gratis.</p>
+        <div class="coming-soon-preview">
+          ${SUBNIVEL_NOMBRES[nivel].map((nombre) => `<span>${nombre}</span>`).join('')}
+        </div>
+        <div class="auth-wall-actions">
+          <a class="btn-primary" href="#/lessons/principiante">Ir a Principiante</a>
+        </div>
+      </div>
+    `;
+  }
+
   _renderAuthWall(nivel) {
     const cfg = NIVEL_CONFIG[nivel];
     return `
@@ -106,8 +129,8 @@ export class LessonsBrowserUI {
   }
 
   async _renderSubnivelView(main, nivel, subnivel, status, isAuth) {
-    // Si no tiene cuenta y no es principiante, redirigir
-    if (nivel !== 'principiante' && !isAuth) {
+    // Nivel próximamente, o sin cuenta y no es principiante → volver a la vista del nivel
+    if (isNivelComingSoon(nivel) || (nivel !== 'principiante' && !isAuth)) {
       window.location.hash = `#/lessons/${nivel}`;
       return;
     }

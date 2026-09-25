@@ -408,6 +408,19 @@ button { cursor: pointer; border: none; font-family: inherit; }
 .plan-expiry { text-align: center; color: var(--text2); font-size: 0.85rem; margin-bottom: 16px; }
 .plans-guarantee { text-align: center; color: var(--text2); font-size: 0.8rem; margin-top: 8px; }
 
+/* ── Próximamente (lanzamiento solo plan Gratis) ── */
+.coming-soon-tag {
+  display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 20px;
+  background: var(--surface2); color: var(--warning); font-size: 0.7rem; font-weight: 700; vertical-align: middle;
+}
+.plan-coming-soon { opacity: 0.55; filter: grayscale(0.6); cursor: not-allowed; }
+.plan-card.plan-coming-soon:hover { border-color: var(--border); background: transparent; }
+.plan-badge-soon { background: var(--surface2); color: var(--warning); border: 1px solid var(--warning); }
+.coming-soon-preview { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.coming-soon-preview span {
+  padding: 4px 10px; border-radius: 20px; background: var(--surface2); color: var(--text2); font-size: 0.75rem;
+}
+
 /* ── Lessons browser ── */
 .lessons-container { max-width: 800px; margin: 32px auto; padding: 24px; }
 .nivel-tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid var(--border); }
@@ -466,6 +479,41 @@ button { cursor: pointer; border: none; font-family: inherit; }
   flex-direction: column; align-items: center; gap: 16px; padding: 24px;
 }
 .blocked-icon { font-size: 4rem; }
+
+/* ── Consentimiento en registro ── */
+.auth-consent { display: flex; gap: 10px; align-items: flex-start; font-size: 0.8rem; color: var(--text2); line-height: 1.5; cursor: pointer; }
+.auth-consent input { margin-top: 3px; flex-shrink: 0; accent-color: var(--accent); width: 16px; height: 16px; }
+
+/* ── Páginas legales ── */
+.legal-page { max-width: 760px; margin: 32px auto; padding: 24px; }
+.legal-page h2 { font-size: 1.8rem; font-weight: 800; margin: 16px 0 4px; }
+.legal-page h3 { font-size: 1.1rem; font-weight: 700; margin: 28px 0 8px; }
+.legal-page p, .legal-page li { color: var(--text2); font-size: 0.95rem; }
+.legal-page p + p { margin-top: 10px; }
+.legal-page ul { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.legal-page strong { color: var(--text); }
+.legal-updated { font-size: 0.8rem !important; margin-bottom: 16px; }
+.legal-notice { background: var(--surface); border-left: 3px solid var(--accent); padding: 12px 14px; border-radius: var(--radius-sm); font-size: 0.85rem !important; }
+.legal-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.85rem; }
+.legal-table th, .legal-table td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.legal-table th { color: var(--text); }
+.legal-table td { color: var(--text2); }
+
+/* ── Footer ── */
+#app { min-height: 100vh; display: flex; flex-direction: column; }
+#main-content { flex: 1; }
+.site-footer { background: var(--bg2); border-top: 1px solid var(--border); padding: 32px 24px 20px; margin-top: 48px; }
+.site-footer > * { max-width: 1000px; margin-left: auto; margin-right: auto; }
+.footer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+.footer-brand { display: flex; flex-direction: column; gap: 4px; }
+.footer-logo { font-weight: 800; font-size: 1.1rem; }
+.footer-tagline { color: var(--text2); font-size: 0.85rem; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.footer-links a { color: var(--text2); font-size: 0.9rem; }
+.footer-links a:hover { color: var(--text); }
+.footer-legal { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.footer-legal p { color: var(--text2); font-size: 0.72rem; line-height: 1.5; }
+.footer-copy { margin-top: 16px; color: var(--text2); font-size: 0.75rem; }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {

@@ -1,6 +1,7 @@
 import { LESSONS, LESSON_IDS } from '../data/lessons.js';
 import { doc, getDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase.js';
+import { isNivelComingSoon } from '../config/features.js';
 
 const PLAN_ORDER = { free: 0, lite: 1, pro: 2, maestro: 3 };
 
@@ -38,6 +39,7 @@ export class LessonEngine {
   async canAccessLesson(lessonId, subscription, userId) {
     const lesson = LESSONS[lessonId];
     if (!lesson) return { canAccess: false, reason: 'Lección no encontrada' };
+    if (isNivelComingSoon(lesson.nivel)) return { canAccess: false, reason: 'Próximamente', comingSoon: true };
 
     const userPlanLevel = PLAN_ORDER[subscription?.plan || 'free'] || 0;
     const requiredPlanLevel = PLAN_ORDER[lesson.planMinimo] || 0;

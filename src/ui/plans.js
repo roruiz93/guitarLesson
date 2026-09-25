@@ -1,4 +1,5 @@
 import { PRODUCTS } from '../modules/subscription.js';
+import { FREE_ONLY } from '../config/features.js';
 
 /** Pantalla de selección y upgrade de plan */
 export class PlansUI {
@@ -13,7 +14,9 @@ export class PlansUI {
     main.innerHTML = `
       <div class="plans-container">
         <h2 class="plans-title">Elige tu plan</h2>
-        <p class="plans-subtitle">Aprende guitarra a tu ritmo — cancela cuando quieras</p>
+        <p class="plans-subtitle">${FREE_ONLY
+          ? 'Empezá gratis hoy — los planes pagos llegan pronto'
+          : 'Aprende guitarra a tu ritmo — cancela cuando quieras'}</p>
 
         <div class="plans-grid">
           ${this._planCard({
@@ -76,9 +79,11 @@ export class PlansUI {
           <p class="plan-expiry">Tu plan ${status.plan.toUpperCase()} vence el ${new Date(status.expiresAt).toLocaleDateString('es-AR')}. ${status.daysRemaining} días restantes.</p>
         ` : ''}
 
-        <div class="plans-guarantee">
-          🔒 Pago seguro · Cancela en cualquier momento · Sin permanencia
-        </div>
+        ${FREE_ONLY ? '' : `
+          <div class="plans-guarantee">
+            🔒 Pago seguro · Cancela en cualquier momento · Sin permanencia
+          </div>
+        `}
       </div>
     `;
 
@@ -88,9 +93,17 @@ export class PlansUI {
   }
 
   _planCard({ id, name, price, period, current, badge, features, cta, disabled, productId, highlight }) {
+    const comingSoon = FREE_ONLY && id !== 'free';
+    if (comingSoon) {
+      badge = '🔒 Próximamente';
+      cta = '🔒 Próximamente';
+      disabled = true;
+      productId = '';
+      highlight = false;
+    }
     return `
-      <div class="plan-card-full ${highlight ? 'plan-highlight' : ''} ${current ? 'plan-current' : ''}">
-        ${badge ? `<div class="plan-badge">${badge}</div>` : ''}
+      <div class="plan-card-full ${highlight ? 'plan-highlight' : ''} ${current ? 'plan-current' : ''} ${comingSoon ? 'plan-coming-soon' : ''}">
+        ${badge ? `<div class="plan-badge ${comingSoon ? 'plan-badge-soon' : ''}">${badge}</div>` : ''}
         <div class="plan-header">
           <h3 class="plan-name-full">${name}</h3>
           <div class="plan-pricing">
